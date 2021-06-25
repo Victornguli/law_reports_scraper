@@ -1,0 +1,17 @@
+version: "3.9"
+services:
+  postgres:
+    image: "postgres:latest"
+    container_name: law-scraper-postgres
+    environment:
+      - POSTGRES_HOST_AUTH_METHOD=trust
+      - POSTGRES_USER=supabase_admin
+      - POSTGRES_DB=public
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+      - ./dbscripts/craft.initial.sql:/docker-entrypoint-initdb.d/craft.initial.sql
+  law_scraper:
+    build: .
+    volumes:
+      - .:/law-scraper
+    container_name: law-scraper
