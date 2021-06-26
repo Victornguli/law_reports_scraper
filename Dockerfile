@@ -9,4 +9,4 @@ RUN pip install -r requirements.txt
 
 COPY . /usr/src/law-scraper
 
-CMD ["scrapy", "crawl", "nwlonline"]
+CMD tail -f /dev/null
