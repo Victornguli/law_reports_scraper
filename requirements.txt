@@ -1,2 +1,4 @@
-scrapy
 psycopg2
+requests
+Scrapy
+python-dateutil
