@@ -102,10 +102,13 @@ class LawReportsScraperPipeline:
             insert_case_issues = 'INSERT INTO cases_issues(case_id, issue_id) VALUES(%s,%s);'
             self.cur.execute(insert_case_issues, (case_id, issue_id))
 
-        citations = ''.join(citations)
-        insert_citation = "INSERT INTO citations (cite, case_id) VALUES (%s,%s) RETURNING id;"
-        self.cur.execute(insert_citation, (citations, case_id))
-        citation_id = self.cur.fetchone()[0]
+        for citation in citations:
+            insert_citation = "INSERT INTO citations (cite, case_id) VALUES (%s,%s) RETURNING id;"
+            self.cur.execute(insert_citation, (citation, case_id))
+            citation_id = self.cur.fetchone()[0]
+
+            insert_case_citation = 'INSERT INTO cases_citations(case_id, cites_to_id) VALUES(%s,%s);'
+            self.cur.execute(insert_case_citation, (case_id, citation_id))
 
         self.connection.commit()
         return item
