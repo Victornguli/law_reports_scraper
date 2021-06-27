@@ -119,8 +119,8 @@ class NwlonlineSpider(scrapy.Spider):
             parties = [
                 {'name': ''.join(response.css('#_id001 ::text').getall()), 'type': 'appellants'},
                 {'name': ''.join(response.css('#_id005 ::text').getall()), 'type': 'respondents'},
-                {'name': ''.join(response.css('#_id010 ::text').getall()), 'type': 'appellants'},
-                {'name': ''.join(response.css('#_id014 ::text').getall()), 'type': 'appellants'}
+                {'name': ''.join(response.css('#_id010 ::text').getall()), 'type': 'respondents'},
+                {'name': ''.join(response.css('#_id014 ::text').getall()), 'type': 'respondents'}
             ]
 
             judges = [
