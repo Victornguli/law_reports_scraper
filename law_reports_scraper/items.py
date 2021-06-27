@@ -16,6 +16,8 @@ class LawReportsScraperItem(scrapy.Item):
     matters = scrapy.Field()
     issues = scrapy.Field()
     citations = scrapy.Field()
+    case_citations = scrapy.Field()
+    parties = scrapy.Field()
 
 
 class CasesItem(scrapy.Item):

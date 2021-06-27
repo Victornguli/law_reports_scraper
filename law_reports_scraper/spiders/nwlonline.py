@@ -64,14 +64,8 @@ class NwlonlineSpider(scrapy.Spider):
 
     def parse_law_report(self, response, **kwargs):
         try:
-            with open('file.html', 'w') as f:
-                f.write(response.text)
-            d = {'name': response.css('#titleCaseBar').get()}
-            name = """
-                00.1 -> cases.name | cases.name_abbreviation | citations.cite | 
-                00.2 -> cases.first_page | 00.1 -> citations.type = ‘nominative’ 
-                reference to cases via case_id
-            """
+            # with open('report_document.html', 'w') as f:
+            #     f.write(response.text)
             volume = {'name': 'N/A', 'barcode': 'N/A'}
             reporter = {'full_name': 'N/A', 'short_name': 'N/A'}
             court = {'name': response.css('#_id017 i::text').get(''), 'name_abbreviation': 'N/A'}
@@ -99,8 +93,35 @@ class NwlonlineSpider(scrapy.Spider):
                     response.css('#_idContainer013 #_id127::text').get()]),
                 'decision_date': decision_date,
                 'status': response.css('#_id10237 i::text').get(),
-                'last_page': int(response.css('#_id10062::text').get(0))
+                'last_page': int(response.css('#_id10062::text').get(0)),
+                'name_abbreviation': 'scng'
             }
+
+            citations = [
+                {
+                    'cite': case['name'],
+                    'type': 'nominative'
+                },
+                {
+                    'cite': response.css('#_id021::text').get(''),
+                    'type': 'official'
+                },
+                {
+                    'cite': response.css('#_id023::text').get(''),
+                    'type': 'official'
+                },
+                {
+                    'cite': response.css('#_id025::text').get(''),
+                    'type': 'official'
+                },
+            ]
+
+            parties = [
+                {'name': ''.join(response.css('#_id001 ::text').getall()), 'type': 'appellants'},
+                {'name': ''.join(response.css('#_id005 ::text').getall()), 'type': 'respondents'},
+                {'name': ''.join(response.css('#_id010 ::text').getall()), 'type': 'appellants'},
+                {'name': ''.join(response.css('#_id014 ::text').getall()), 'type': 'appellants'}
+            ]
 
             judges = [
                 ''.join(x.strip() for x in response.css('#_id029 ::text').getall()),
@@ -120,7 +141,7 @@ class NwlonlineSpider(scrapy.Spider):
             issues_start, issues_end = 0, False
             summaries_start, summaries_end = 0, False
 
-            citations = []
+            case_citations = []
             citation_sections = [
                 'Nigerian Cases Referred to in the Judgment:',
                 'Foreign Case Referred to in the Judgment:',
@@ -183,11 +204,11 @@ class NwlonlineSpider(scrapy.Spider):
                     nigerian_statues_end = True
 
                 if nigerian_cases_start >= 2 and not nigerian_cases_end:
-                    citations.append(param_text)
+                    case_citations.append(param_text)
                 if foreign_cases_start >= 2 and not foreign_cases_end:
-                    citations.append(param_text)
+                    case_citations.append(param_text)
                 if nigerian_statues_start >= 2 and not nigerian_statues_end:
-                    citations.append(param_text)
+                    case_citations.append(param_text)
 
             struct = {
                 'volume': volume,
@@ -198,7 +219,9 @@ class NwlonlineSpider(scrapy.Spider):
                 'judges': judges,
                 'matters': matters,
                 'issues': issues,
-                'citations': citations
+                'citations': citations,
+                'case_citations': case_citations,
+                'parties': parties
             }
             logging.info(struct)
             yield LawReportsScraperItem(**struct)

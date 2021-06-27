@@ -38,6 +38,8 @@ class LawReportsScraperPipeline:
         matters = item['matters']
         issues = item['issues']
         citations = item['citations']
+        parties = item['parties']
+        citation_cases = item['case_citations']
 
         insert_volume = "INSERT INTO volumes (name,barcode) VALUES (%s,%s) RETURNING id;"
         self.cur.execute(insert_volume, (volume['name'], volume['barcode']))
@@ -103,12 +105,37 @@ class LawReportsScraperPipeline:
             self.cur.execute(insert_case_issues, (case_id, issue_id))
 
         for citation in citations:
-            insert_citation = "INSERT INTO citations (cite, case_id) VALUES (%s,%s) RETURNING id;"
-            self.cur.execute(insert_citation, (citation, case_id))
-            citation_id = self.cur.fetchone()[0]
+            insert_citation = "INSERT INTO citations (cite, type, case_id) VALUES (%s,%s,%s) RETURNING id;"
+            self.cur.execute(insert_citation, (citation['cite'], citation['type'], case_id))
+            # citation_id = self.cur.fetchone()[0]
 
-            insert_case_citation = 'INSERT INTO cases_citations(case_id, cites_to_id) VALUES(%s,%s);'
-            self.cur.execute(insert_case_citation, (case_id, citation_id))
+        for party in parties:
+            insert_parties = "INSERT INTO parties (name, type, case_id) VALUES (%s,%s,%s) RETURNING id;"
+            self.cur.execute(insert_parties, (party['name'], party['type'], case_id))
+            party_id = self.cur.fetchone()[0]
+
+            insert_case_party = "INSERT INTO cases_parties (case_id, party_id) VALUES (%s, %s)"
+            self.cur.execute(insert_case_party, (case_id, party_id))
+
+        for case in citation_cases:
+            insert_cited_case = (
+                "INSERT INTO cases(name,volume_id,reportor_id,court_id,jurisdiction_id) "
+                "values(%s,%s,%s,%s,%s) RETURNING id"
+            )
+            self.cur.execute(
+                insert_cited_case,
+                (
+                    case,
+                    volume_id,
+                    reporter_id,
+                    court_id,
+                    jurisdiction_id
+                )
+            )
+            cited_case_id = self.cur.fetchone()[0]
+
+            insert_case_citation = "INSERT INTO cases_citations (case_id, cites_to_id) VALUES(%s,%s);"
+            self.cur.execute(insert_case_citation, (case_id, cited_case_id))
 
         self.connection.commit()
         return item
